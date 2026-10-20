@@ -7,18 +7,31 @@
 <link rel="stylesheet" href="style.css">
 <style>
 .conn { margin-top: 24px; }
-.conn button {
+.conn button, .qa button {
   font: inherit; padding: .55em 1.3em; cursor: pointer;
   color: var(--bg); background: var(--ink); border: 1px solid var(--ink); border-radius: 6px;
 }
-.conn button:disabled { opacity: .6; cursor: wait; }
-.conn button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.conn button:disabled, .qa button:disabled { opacity: .6; cursor: wait; }
+.conn button:focus-visible, .qa button:focus-visible, .qa input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .conn pre {
   margin: 12px 0 0; padding: 12px 14px; white-space: pre-wrap; word-break: break-word;
   font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: .9rem;
   background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
 }
 .conn pre[hidden] { display: none; }
+.qa { margin-top: 8px; }
+.qa form { display: flex; flex-wrap: wrap; gap: 10px; }
+.qa input {
+  flex: 1 1 320px; font: inherit; color: var(--ink); background: var(--surface);
+  padding: .55em .85em; border: 1px solid var(--line); border-radius: 6px;
+}
+.qa .answer {
+  margin-top: 16px; padding: 14px 16px; white-space: pre-wrap; word-break: break-word;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+}
+.qa .answer[hidden] { display: none; }
+.qa .answer.err { border-color: #C0392B; color: #C0392B; }
+.qa .answer.wait { color: var(--muted); }
 .conn pre.err { border-color: #C0392B; color: #C0392B; }
 </style>
 </head>
@@ -54,9 +67,13 @@
 <main>
   <h1>問答</h1>
   <p class="lead">針對研究內容與結果的問答功能。</p>
-  <section class="soon" aria-label="即將推出">
-    <div class="badge">即將推出</div>
-    <p>問答功能正在準備中，敬請期待。</p>
+  <section class="qa" aria-label="問答">
+    <form id="qaForm">
+      <input type="text" id="qaInput" maxlength="500" required autocomplete="off"
+             aria-label="請輸入問題" placeholder="請輸入問題，例如：10–19 歲組的憂鬱平均分數是多少？">
+      <button type="submit" id="qaBtn">送出</button>
+    </form>
+    <div class="answer" id="qaOut" role="status" aria-live="polite" hidden></div>
   </section>
 
   <section class="conn" aria-label="後端連線測試">
@@ -64,10 +81,6 @@
     <pre id="testOut" role="status" aria-live="polite" hidden></pre>
   </section>
 
-  <section class="conn" aria-label="Gemini 測試">
-    <button type="button" id="geminiBtn">測試 Gemini</button>
-    <pre id="geminiOut" role="status" aria-live="polite" hidden></pre>
-  </section>
 </main>
 <footer class="site-footer">
   <div class="in">
@@ -126,48 +139,56 @@
 <script>
 (function () {
   var API_URL = 'https://dass-42.c44121298.workers.dev/';
-  var QUESTION = '請用一句話自我介紹';
-  var btn = document.getElementById('geminiBtn');
-  var out = document.getElementById('geminiOut');
+  var form = document.getElementById('qaForm');
+  var input = document.getElementById('qaInput');
+  var btn = document.getElementById('qaBtn');
+  var out = document.getElementById('qaOut');
 
-  function show(text, isError) {
+  function show(text, kind) {
     out.textContent = text;
-    out.className = isError ? 'err' : '';
+    out.className = 'answer' + (kind ? ' ' + kind : '');
     out.hidden = false;
   }
 
-  btn.addEventListener('click', function () {
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var question = input.value.trim();
+    if (!question) { show('請先輸入問題。', 'err'); return; }
+
     btn.disabled = true;
-    show('問題：' + QUESTION + '\n\n等待 Gemini 回覆中…', false);
+    input.disabled = true;
+    show('回答中…', 'wait');
     var ctrl = new AbortController();
-    var timer = setTimeout(function () { ctrl.abort(); }, 40000);
+    var timer = setTimeout(function () { ctrl.abort(); }, 60000);
 
     fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'ask', question: QUESTION }),
+      body: JSON.stringify({ action: 'ask', question: question }),
       signal: ctrl.signal
     }).then(function (res) {
       return res.text().then(function (txt) {
         var data;
-        try { data = JSON.parse(txt); } catch (e) { data = null; }
+        try { data = JSON.parse(txt); } catch (err) { data = null; }
         if (!res.ok) {
           var msg = data && data.error ? data.error : (txt || '伺服器沒有回傳說明');
-          show('呼叫失敗（HTTP ' + res.status + '）：' + msg, true);
+          show('無法回答（HTTP ' + res.status + '）：' + msg, 'err');
         } else if (data === null || typeof data.answer !== 'string') {
-          show('呼叫失敗：後端回傳的內容格式不符。\n' + txt, true);
+          show('無法回答：後端回傳的內容格式不符。', 'err');
         } else {
-          show('問題：' + QUESTION + '\n\n回覆：' + data.answer, false);
+          show(data.answer, '');
         }
       });
     }).catch(function (err) {
       var msg = err && err.name === 'AbortError'
-        ? '連線逾時（超過 40 秒沒有回應）。'
+        ? '等待逾時（超過 60 秒沒有回應），請稍後再試。'
         : '無法連線到後端，請檢查網路，或確認後端網址與跨網域（CORS）設定。';
-      show('呼叫失敗：' + msg, true);
+      show('無法回答：' + msg, 'err');
     }).then(function () {
       clearTimeout(timer);
       btn.disabled = false;
+      input.disabled = false;
+      input.focus();
     });
   });
 })();
