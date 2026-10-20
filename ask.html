@@ -5,6 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>問答｜年齡與憂鬱、焦慮、壓力的關係</title>
 <link rel="stylesheet" href="style.css">
+<style>
+.conn { margin-top: 24px; }
+.conn button {
+  font: inherit; padding: .55em 1.3em; cursor: pointer;
+  color: var(--bg); background: var(--ink); border: 1px solid var(--ink); border-radius: 6px;
+}
+.conn button:disabled { opacity: .6; cursor: wait; }
+.conn button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.conn pre {
+  margin: 12px 0 0; padding: 12px 14px; white-space: pre-wrap; word-break: break-word;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: .9rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+}
+.conn pre[hidden] { display: none; }
+.conn pre.err { border-color: #C0392B; color: #C0392B; }
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -42,6 +58,11 @@
     <div class="badge">即將推出</div>
     <p>問答功能正在準備中，敬請期待。</p>
   </section>
+
+  <section class="conn" aria-label="後端連線測試">
+    <button type="button" id="testBtn">測試連線</button>
+    <pre id="testOut" role="status" aria-live="polite" hidden></pre>
+  </section>
 </main>
 <footer class="site-footer">
   <div class="in">
@@ -49,6 +70,54 @@
     <span>組員：（請填入組員姓名）</span>
   </div>
 </footer>
+<script>
+(function () {
+  var API_URL = 'https://dass-42.c44121298.workers.dev/';
+  var btn = document.getElementById('testBtn');
+  var out = document.getElementById('testOut');
+
+  function show(text, isError) {
+    out.textContent = text;
+    out.className = isError ? 'err' : '';
+    out.hidden = false;
+  }
+
+  btn.addEventListener('click', function () {
+    btn.disabled = true;
+    show('連線中…', false);
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 10000);
+
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'test' }),
+      signal: ctrl.signal
+    }).then(function (res) {
+      return res.text().then(function (txt) {
+        var data;
+        try { data = JSON.parse(txt); } catch (e) { data = null; }
+        if (!res.ok) {
+          var msg = data && data.error ? data.error : (txt || '伺服器沒有回傳說明');
+          show('連線失敗（HTTP ' + res.status + '）：' + msg, true);
+        } else if (data === null) {
+          show('連線失敗：後端回傳的內容不是 JSON。\n' + txt, true);
+        } else {
+          show(JSON.stringify(data, null, 2), false);
+        }
+      });
+    }).catch(function (err) {
+      var msg = err && err.name === 'AbortError'
+        ? '連線逾時（超過 10 秒沒有回應）。'
+        : '無法連線到後端，請檢查網路，或確認後端網址與跨網域（CORS）設定。';
+      show('連線失敗：' + msg, true);
+    }).then(function () {
+      clearTimeout(timer);
+      btn.disabled = false;
+    });
+  });
+})();
+</script>
 <script>
 (function () {
   var sel = document.getElementById('bgSelect'), sw = document.getElementById('bgSwatch'), root = document.documentElement;
@@ -66,6 +135,9 @@
     try { localStorage.setItem('dash-bg', sel.value); } catch (e) {}
   });
 })();
+</script>
+</body>
+</html>
 </script>
 </body>
 </html>
