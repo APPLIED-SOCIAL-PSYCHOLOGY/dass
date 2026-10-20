@@ -63,6 +63,11 @@
     <button type="button" id="testBtn">測試連線</button>
     <pre id="testOut" role="status" aria-live="polite" hidden></pre>
   </section>
+
+  <section class="conn" aria-label="Gemini 測試">
+    <button type="button" id="geminiBtn">測試 Gemini</button>
+    <pre id="geminiOut" role="status" aria-live="polite" hidden></pre>
+  </section>
 </main>
 <footer class="site-footer">
   <div class="in">
@@ -120,6 +125,55 @@
 </script>
 <script>
 (function () {
+  var API_URL = 'https://dass-42.c44121298.workers.dev/';
+  var QUESTION = '請用一句話自我介紹';
+  var btn = document.getElementById('geminiBtn');
+  var out = document.getElementById('geminiOut');
+
+  function show(text, isError) {
+    out.textContent = text;
+    out.className = isError ? 'err' : '';
+    out.hidden = false;
+  }
+
+  btn.addEventListener('click', function () {
+    btn.disabled = true;
+    show('問題：' + QUESTION + '\n\n等待 Gemini 回覆中…', false);
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 40000);
+
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'ask', question: QUESTION }),
+      signal: ctrl.signal
+    }).then(function (res) {
+      return res.text().then(function (txt) {
+        var data;
+        try { data = JSON.parse(txt); } catch (e) { data = null; }
+        if (!res.ok) {
+          var msg = data && data.error ? data.error : (txt || '伺服器沒有回傳說明');
+          show('呼叫失敗（HTTP ' + res.status + '）：' + msg, true);
+        } else if (data === null || typeof data.answer !== 'string') {
+          show('呼叫失敗：後端回傳的內容格式不符。\n' + txt, true);
+        } else {
+          show('問題：' + QUESTION + '\n\n回覆：' + data.answer, false);
+        }
+      });
+    }).catch(function (err) {
+      var msg = err && err.name === 'AbortError'
+        ? '連線逾時（超過 40 秒沒有回應）。'
+        : '無法連線到後端，請檢查網路，或確認後端網址與跨網域（CORS）設定。';
+      show('呼叫失敗：' + msg, true);
+    }).then(function () {
+      clearTimeout(timer);
+      btn.disabled = false;
+    });
+  });
+})();
+</script>
+<script>
+(function () {
   var sel = document.getElementById('bgSelect'), sw = document.getElementById('bgSwatch'), root = document.documentElement;
   function apply(v) {
     if (v === 'auto') {
@@ -135,9 +189,6 @@
     try { localStorage.setItem('dash-bg', sel.value); } catch (e) {}
   });
 })();
-</script>
-</body>
-</html>
 </script>
 </body>
 </html>
