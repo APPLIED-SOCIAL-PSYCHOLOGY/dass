@@ -159,7 +159,7 @@
     input.disabled = true;
     show('回答中…', 'wait');
     var ctrl = new AbortController();
-    var timer = setTimeout(function () { ctrl.abort(); }, 60000);
+    var timer = setTimeout(function () { ctrl.abort(); }, 75000);
 
     fetch(API_URL, {
       method: 'POST',
@@ -181,7 +181,7 @@
       });
     }).catch(function (err) {
       var msg = err && err.name === 'AbortError'
-        ? '等待逾時（超過 60 秒沒有回應），請稍後再試。'
+        ? '等待逾時（超過 75 秒沒有回應），請稍後再試。'
         : '無法連線到後端，請檢查網路，或確認後端網址與跨網域（CORS）設定。';
       show('無法回答：' + msg, 'err');
     }).then(function () {
