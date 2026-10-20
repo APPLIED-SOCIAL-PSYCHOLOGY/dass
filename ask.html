@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>問答｜年齡與憂鬱、焦慮、壓力的關係</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <nav class="site-nav" aria-label="主要導覽">
+    <a class="brand" href="index.html">DASS 年齡研究</a>
+    <ul>
+        <li><a class="nl" href="index.html">首頁</a></li>
+        <li><a class="nl" href="results.html">研究結果</a></li>
+        <li><a class="nl" href="ask.html" aria-current="page">問答</a></li>
+        <li><a class="nl" href="about.html">關於研究</a></li>
+    </ul>
+    <div class="bgpicker">
+  <span class="sw" id="bgSwatch" aria-hidden="true"></span>
+  <label for="bgSelect">背景顏色</label>
+  <select id="bgSelect">
+    <option value="auto">預設（跟隨系統）</option>
+    <option value="#FFFFFF|light">白色</option>
+    <option value="#F4F6F7|light">淺灰</option>
+    <option value="#FBF6E9|light">米黃</option>
+    <option value="#E8F1FA|light">淡藍</option>
+    <option value="#E8F5EC|light">淡綠</option>
+    <option value="#FBEDF1|light">淡粉</option>
+    <option value="#F0EBF8|light">淡紫</option>
+    <option value="#11181D|dark">深藍灰</option>
+    <option value="#1E1E1E|dark">炭灰</option>
+    <option value="#000000|dark">黑色</option>
+  </select>
+</div>
+  </nav>
+</header>
+<main>
+  <h1>問答</h1>
+  <p class="lead">針對研究內容與結果的問答功能。</p>
+  <section class="soon" aria-label="即將推出">
+    <div class="badge">即將推出</div>
+    <p>問答功能正在準備中，敬請期待。</p>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="in">
+    <span>組別：（請填入組別）</span>
+    <span>組員：（請填入組員姓名）</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var sel = document.getElementById('bgSelect'), sw = document.getElementById('bgSwatch'), root = document.documentElement;
+  function apply(v) {
+    if (v === 'auto') {
+      root.removeAttribute('data-mode'); root.style.removeProperty('--bg');
+    } else {
+      var a = v.split('|'); root.setAttribute('data-mode', a[1]); root.style.setProperty('--bg', a[0]);
+    }
+  }
+  try { var saved = localStorage.getItem('dash-bg'); if (saved) { sel.value = saved; if (sel.value !== saved) sel.value = 'auto'; } } catch (e) {}
+  apply(sel.value);
+  sel.addEventListener('change', function () {
+    apply(sel.value);
+    try { localStorage.setItem('dash-bg', sel.value); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

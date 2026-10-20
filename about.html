@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>關於研究｜年齡與憂鬱、焦慮、壓力的關係</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <nav class="site-nav" aria-label="主要導覽">
+    <a class="brand" href="index.html">DASS 年齡研究</a>
+    <ul>
+        <li><a class="nl" href="index.html">首頁</a></li>
+        <li><a class="nl" href="results.html">研究結果</a></li>
+        <li><a class="nl" href="ask.html">問答</a></li>
+        <li><a class="nl" href="about.html" aria-current="page">關於研究</a></li>
+    </ul>
+    <div class="bgpicker">
+  <span class="sw" id="bgSwatch" aria-hidden="true"></span>
+  <label for="bgSelect">背景顏色</label>
+  <select id="bgSelect">
+    <option value="auto">預設（跟隨系統）</option>
+    <option value="#FFFFFF|light">白色</option>
+    <option value="#F4F6F7|light">淺灰</option>
+    <option value="#FBF6E9|light">米黃</option>
+    <option value="#E8F1FA|light">淡藍</option>
+    <option value="#E8F5EC|light">淡綠</option>
+    <option value="#FBEDF1|light">淡粉</option>
+    <option value="#F0EBF8|light">淡紫</option>
+    <option value="#11181D|dark">深藍灰</option>
+    <option value="#1E1E1E|dark">炭灰</option>
+    <option value="#000000|dark">黑色</option>
+  </select>
+</div>
+  </nav>
+</header>
+<main>
+  <h1>關於研究</h1>
+  <p class="lead">說明本研究所用資料的來源、分析方法，以及解讀結果時需要留意的限制。</p>
+  <div class="prose">
+    <h2>資料來源</h2>
+    <ul>
+      <li>資料來自線上版憂鬱焦慮壓力量表（Depression Anxiety Stress Scales，DASS）施測，於 2017–2019 年蒐集。</li>
+      <li>施測對象不限，參與者多是為了取得個人化的測驗結果而作答。測驗結束後可自願填寫簡短的研究問卷。</li>
+      <li>本資料僅包含同意填寫研究問卷、且在結尾問題中回答「是」（已據實作答並同意用於研究）的填答者。</li>
+      <li>量表題目逐題隨機順序呈現，每題以 1–4 分表示「過去一週」符合的程度；問卷另蒐集年齡、性別、教育程度等基本資料。</li>
+    </ul>
+
+    <h2>研究方法</h2>
+    <ul>
+      <li><b>量表計分</b>：DASS-42 共 42 題，原始 1–4 分減 1 換算為 0–3 分，依題目歸入憂鬱、焦慮、壓力三個分量表（各 14 題）後加總，每個分量表總分為 0–42。</li>
+      <li><b>嚴重度分級</b>：依各分量表總分切分為正常、輕度、中度、重度、極重度五個等級（切分點見「研究結果」頁的註解）。</li>
+      <li><b>年齡分組</b>：分為 10–19、20–29、30–39、40–49、50+ 五組，其中 50+ 由 50–59、60–69、70–79 三組合併而成。</li>
+      <li><b>統計量</b>：各年齡組報告人數、平均數、標準差與 95% 信賴區間（以 t 分布計算）；嚴重度則報告各等級人數及占該組的百分比。</li>
+      <li><b>呈現方式</b>：折線圖比較各年齡組的分量表平均總分，堆疊長條圖比較嚴重度分布，詳細數值見「研究結果」頁的表格。</li>
+    </ul>
+
+    <h2>樣本限制</h2>
+    <ul>
+      <li><b>非隨機抽樣</b>：參與者為自願上網作答、想取得個人化結果的人，結果不宜直接推論到一般人口。</li>
+      <li><b>各組人數不均</b>：10–29 歲占多數，高齡組人數少，平均數與比例的估計較不穩定，信賴區間也較寬。0–9 歲與 80 歲以上沒有填答者，未列入。</li>
+      <li><b>橫斷面資料</b>：呈現的是同一時期不同年齡組的差異，無法說明個人隨年齡增長如何改變，也可能混有世代與填答動機的影響。</li>
+      <li><b>自陳與線上施測</b>：資料為自我報告，且無法確認填答情境；同一網路可能有多人作答，也可能有同一人重複作答的紀錄。</li>
+      <li><b>量表用途</b>：DASS 是症狀篩檢量表，嚴重度等級不等於臨床診斷。</li>
+    </ul>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="in">
+    <span>組別：（請填入組別）</span>
+    <span>組員：（請填入組員姓名）</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var sel = document.getElementById('bgSelect'), sw = document.getElementById('bgSwatch'), root = document.documentElement;
+  function apply(v) {
+    if (v === 'auto') {
+      root.removeAttribute('data-mode'); root.style.removeProperty('--bg');
+    } else {
+      var a = v.split('|'); root.setAttribute('data-mode', a[1]); root.style.setProperty('--bg', a[0]);
+    }
+  }
+  try { var saved = localStorage.getItem('dash-bg'); if (saved) { sel.value = saved; if (sel.value !== saved) sel.value = 'auto'; } } catch (e) {}
+  apply(sel.value);
+  sel.addEventListener('change', function () {
+    apply(sel.value);
+    try { localStorage.setItem('dash-bg', sel.value); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>
